@@ -1,0 +1,10 @@
+/data
+*/*.pyc
+*/*.pth
+/__*
+/src/__*
+/src/models/__*
+/src/data
+/src/models/data
+/.idea
+/model_parameters
