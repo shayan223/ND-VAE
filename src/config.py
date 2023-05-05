@@ -12,16 +12,7 @@ CLASSIFIER_PRETRAINED = False
 CLASSIFIER_PRETUNED = False
 VAE_PRETRAINED = False
 REDUCED_DATA = True #limits data to 300 elements for testing
-'''
-NVAE_PARAMS =  {  
-    'x_channels' : 1,
-    'encoding_channels': 8,
-    'pre_proc_groups' : 2,
-    'scales': 2,
-    'groups': 2,
-    'cells': 4
-}
-'''
+
 NVAE_PARAMS =  {  
     'x_channels' : 1,
     'pre_proc_groups' : 2,
@@ -31,5 +22,5 @@ NVAE_PARAMS =  {
     'cells': 4
 }
 
-NOISE_MAX = .2
+NOISE_MAX = .1
 USE_NOISE = True

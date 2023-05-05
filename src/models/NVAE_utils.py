@@ -3,20 +3,9 @@
 https://github.com/NVlabs/NVAE/blob/9fc1a288fb831c87d93a4e2663bc30ccf9225b29/utils.py#L161'''
 
 
-
-
-import logging
-import os
-import shutil
-import time
-from datetime import timedelta
-import sys
-
 import torch
-import torch.nn as nn
-from torch.distributions.bernoulli import Bernoulli
 import numpy as np
-import torch.distributed as dist
+
 
 import torch.nn.functional as F
 #from tensorboardX import SummaryWriter
@@ -68,20 +57,7 @@ def decode_output(recon_x):
     return recon
 
 def reconstruction_loss(recon_x, x, crop=False):
-    '''
-    #NOTE: Double check this for anything that isn't MNIST
-    #decoder = Bernoulli(logits=recon_x)
-    decoder = NormalDecoder(recon_x)
 
-    recon = decoder.log_prob(x)
-    if crop:
-        recon = recon[:, :, 2:30, 2:30]
-
-    if isinstance(decoder, DiscMixLogistic):
-        return - torch.sum(recon, dim=[1, 2])  # summation over RGB is done.
-    else:
-        return - torch.sum(recon, dim=[1, 2, 3])
-    '''
     recon_x = decode_output(recon_x)
     BCE = F.binary_cross_entropy(recon_x, x, size_average=False)
     return BCE

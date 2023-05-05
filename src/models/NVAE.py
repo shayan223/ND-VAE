@@ -57,26 +57,7 @@ class depthwise_separable_conv(nn.Module):
         out = self.pointwise(out)
         return out
 
-'''
-# SE code from https://amaarora.github.io/2020/07/24/SeNet.html
-class SE_Block(nn.Module):
-    "credits: https://github.com/moskomule/senet.pytorch/blob/master/senet/se_module.py#L4"
-    def __init__(self, c, r=16):
-        super().__init__()
-        self.squeeze = nn.AdaptiveAvgPool2d(1)
-        self.excitation = nn.Sequential(
-            nn.Linear(c, c // r, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(c // r, c, bias=False),
-            nn.Sigmoid()
-        )
 
-    def forward(self, x):
-        bs, c, _, _ = x.shape
-        y = self.squeeze(x).view(bs, c)
-        y = self.excitation(y).view(bs, c, 1, 1)
-        return x * y.expand_as(x)
-'''
 
 class SE_Block(nn.Module):
     def __init__(self, Cin, Cout):
@@ -410,16 +391,7 @@ class Encoder_tower(nn.Module):
                     group.append(Residual_Cell_NVAE(in_chans,
                                             out_channels=in_chans))
                 scale.append(nn.Sequential(*group))
-                '''
-                #Add a combiner cell if its not the last group of the final scale
-                if not (s == num_of_scales - 1 and g == groups_per_scale - 1):
-                    #create a combiner cell for the current scale size
-                    encoder_chans = in_chans
-                    decoder_chans = in_chans
-                    #Add combiners in reverse order by always inserting before the 0th index
-                    self.combiner_cells.insert(0,EncCombinerCell(encoder_chans,
-                                                decoder_chans,encoder_chans))
-                '''
+
             #TODO test performance of combiners per group vs per scale
             #Add a combiner for the PREVIOUS scale (The last scale doesnt have a encCombiner, but the output of the
             # preprocess does)
@@ -611,40 +583,7 @@ class Decoder_tower(nn.Module):
         return output, dist_info
 
 
-    # TODO
-    '''
-    def sample(self,num_of_samples,t):
-        
-        # Use top encoding to generate sampler and draw sample
-        z_1 = self.samplers[0](latent_vals[0])
-        # Expand dims of h to match batch size
-        batch_size = z_1.shape[0]
-        h = self.h.expand(batch_size, -1, -1, -1)
-        # Take the first sample, use a DecCombiner with h
-        first_input = self.combiner_cells[0](z_1, h)
 
-        # Input "latent_vals" is expected to be in correct top-down order
-        output = first_input
-        for scale in range(self.num_of_scales):
-            scale_output = self.dec_tower[scale](output)
-            combined_latent = enc_combiners[scale](latent_vals[scale + 1], scale_output)
-            cur_z = self.samplers[scale + 1](combined_latent)
-            output = self.combiner_cells[scale + 1](cur_z, scale_output)
-
-        all_p = []
-        all_log_p = []
-        all_q = []
-        all_log_q = []
-        # Extract prior and posterior data from samplers
-        for s in self.samplers:  # range(len(self.samplers)):
-            all_p.append(s.p_dist)
-            all_log_p.append(s.log_p_conv)
-            all_q.append(s.q_dist)
-            all_log_q.append(s.log_q_conv)
-        dist_info = zip(all_q, all_p, all_log_q, all_log_p)
-        # Returns a drawn sample from the bottom Z (latent space) in the tower, as well as all distribution info
-        return output, dist_info
-    '''
         
 
 #TODO THIS IS WHERE NORMALIZING FLOW WILL BE APPLIED          
@@ -745,20 +684,7 @@ class Defence_NVAE(nn.Module):
 
         nelbo_batch = recon_loss + balanced_kl
         loss = torch.mean(nelbo_batch)
-        '''
-        norm_loss = model.spectral_norm_parallel()
-        bn_loss = model.batchnorm_loss()
-        # get spectral regularization coefficient (lambda)
-        if args.weight_decay_norm_anneal:
-            assert args.weight_decay_norm_init > 0 and args.weight_decay_norm > 0, 'init and final wdn should be positive.'
-            wdn_coeff = (1. - kl_coeff) * np.log(args.weight_decay_norm_init) + kl_coeff * np.log(
-                args.weight_decay_norm)
-            wdn_coeff = np.exp(wdn_coeff)
-        else:
-            wdn_coeff = args.weight_decay_norm
 
-        loss += norm_loss * wdn_coeff + bn_loss * wdn_coeff
-        '''
 
         return loss, recon_loss, balanced_kl
 

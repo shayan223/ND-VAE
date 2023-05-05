@@ -13,11 +13,11 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 
-from torchvision import datasets, transforms
+from torchvision import transforms
 
-from art.attacks.evasion import FastGradientMethod,CarliniL2Method
+from art.attacks.evasion import FastGradientMethod
 from art.estimators.classification import PyTorchClassifier
-from art.utils import load_mnist
+
 
 from sklearn.model_selection import train_test_split
 
@@ -25,11 +25,10 @@ import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from models.defense_vae import Defence_VAE
 from data_utils import Generate_attack_data, ImgDataset, ImgDataset_Basic, generate_adv_datasets
 from models.basic_vae_mnist import VAE
 from NVAE_defense_training import display_NVAE_output
-from directed_latent import vae_training_guided
+
 
 # Find and use GPU's if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -227,8 +226,7 @@ vae_training_function=None,nvae_params=None,save_to=None, guided=False, noisy=Fa
         if(vae_pretrained == True):
             vae_model.load_state_dict(torch.load("../model_parameters/"+test_name+"/vae.pth"))
         elif(guided == True):
-            vae_model = vae_training_guided(save_to,vae_model,
-                    train_dataset,guided_train_dataset,batch_size,n_epochs,lr)
+            pass
         else:
             vae_model,KL_losses,Recon_losses = vae_training(save_to,vae_model,
                                 train_dataset,batch_size,n_epochs,lr)
@@ -267,13 +265,7 @@ vae_training_function=None,nvae_params=None,save_to=None, guided=False, noisy=Fa
 
         for epoch in range(tuning_epochs):#range(n_epochs):
             for idx, sample in enumerate(train_loader):
-                '''
-                if(nvae_params is not None):
-                    x_adv = sample['x_adv'].to(device)
-                else:
-                    #x_adv = sample['x_adv'].permute(0,2,1,3).to(device)
-                    x_adv = sample['x_adv'].to(device)
-                '''
+
                 x = sample['x'].to(device)#.permute(0,2,1,3).to(device)
                 label = sample['label'].to(device)
 
@@ -405,15 +397,9 @@ vae_training_function=None,nvae_params=None,save_to=None, guided=False, noisy=Fa
     net_model.eval()
     for idx, sample in enumerate(tqdm(test_loader)):
 
-        #x_adv = sample['x_adv'].permute(0,2,1,3).to(device)
-        #label = sample['label']
-        #test_labels.append(label.numpy())
-        #label.to(device)
-        #output, _, _ = vae_model(x_adv)
         if (nvae_params is not None):
             x_adv = sample['x_adv'].to(device)
         else:
-            #x_adv = sample['x_adv'].permute(0, 2, 1, 3).to(device)
             x_adv = sample['x_adv'].to(device)
         label = sample['label']
         test_labels.append(label.numpy())
@@ -568,7 +554,6 @@ def vae_training(test_name,vae_model,train_dataset,batch_size,n_epochs,lr,pre_tr
         BCE = F.binary_cross_entropy(recon_x, x, size_average=False)
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-        #return BCE + 0.01* KLD, BCE, KLD
         return BCE + KLD, BCE, KLD
 
 
@@ -578,8 +563,7 @@ def vae_training(test_name,vae_model,train_dataset,batch_size,n_epochs,lr,pre_tr
             torch.nn.init.uniform_(m.weight,-0.08,0.08)
             if(m.bias is not None):
                 m.bias.data.fill_(0.01)
-    #vae_model.logvar_layer.weight.data.uniform_(-.08,0.08)
-    #vae_model = VAE()
+
 
 
     
@@ -596,10 +580,8 @@ def vae_training(test_name,vae_model,train_dataset,batch_size,n_epochs,lr,pre_tr
         avg_batch_recon = []
         for idx,sample in enumerate(train_loader, 0):
             x_adv = sample['x_adv']
-            #x_adv = x_adv.permute(0,2,1,3).to(device)
             x_adv = x_adv.to(device)
             x_orig = sample['x_orig']
-            #x_orig = x_orig.permute(0,2,1,3).to(device)
             x_orig = x_orig.to(device)
            
             # Feeding a batch of images into the network to obtain the output image, mu, and logVar

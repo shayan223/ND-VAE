@@ -1,12 +1,12 @@
 
 
-import numpy as np
+
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import numpy as np
-from torchvision import datasets, transforms
+
+
+
+
+
 import os
 import pandas as pd
 import dataframe_image as dfi
@@ -15,11 +15,10 @@ import matplotlib.pyplot as plt
 from models.basic_vae_mnist import VAE
 from models.deeper_vae import deeper_VAE
 from models.mnist_classifier import Net
-from models.defense_vae import Defence_VAE
 from models.vae_ncell import VAE_Ncell
-from models.NVAE import Defence_NVAE, train_NVAE
-from adversarial_utils import adversarial_test, whitebox_vae_training
-from data_utils import Generate_attack_data, ImgDataset, ImgDataset_Basic, AddGaussianNoise, prep_pytorch_dataset
+from models.NVAE import Defence_NVAE
+from adversarial_utils import  whitebox_vae_training
+from data_utils import prep_pytorch_dataset
 from NVAE_defense_training import NVAE_Defense_training
 from generate_plots import generate_plots
 from zero_shot_test import zero_shot_eval

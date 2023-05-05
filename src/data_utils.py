@@ -118,33 +118,6 @@ def Generate_attack_data(attack_type,classifier,x_train,y_train,x_test,y_test,ev
 
 
 
-
-
-'''
-class ImgDataset(Dataset):
-    def __init__(self, adv_imgs, originals, labels,transform=None):
-        self.data = adv_imgs
-        self.original_imgs = originals
-        self.labels = torch.LongTensor(labels)
-        self.transform = transform
-        
-    def __getitem__(self, index):
-        x = self.data[index]
-        x_orig = self.original_imgs[index]
-        y = self.labels[index]
-        
-        if self.transform:
-            #x = Image.fromarray(self.data[index].astype(np.uint8).transpose(1,2,0))
-            x = self.transform(x)
-            x_orig = self.transform(x_orig)
-        
-        sample = {'x_adv': x, 'x_orig':x_orig, 'label':y}
-        return sample
-    
-    def __len__(self):
-        return len(self.data)
-
-'''
 class ImgDataset(Dataset):
     def __init__(self, adv_imgs, originals, labels, transform=None, noisy_input=False):
         self.data = adv_imgs
@@ -201,32 +174,6 @@ class ImgDataset_Basic(Dataset):
         return len(self.data)
 
 
-class ImgDataset_guided(Dataset):
-    def __init__(self, adv_imgs, originals, transform=None):
-        self.adv_data = torch.Tensor(adv_imgs)
-        self.original_imgs = torch.Tensor(originals)
-        #Label whether image is benign or adversarial
-        self.labels = torch.randint(0,1,(len(originals),))
-        # 1 for adversarial, 0 for benign
-        #self.data = torch.where(torch.tensor(self.labels, dtype=torch.uint8),self.adv_data,self.original_imgs)
-        self.data = torch.cat([self.adv_data, self.original_imgs])[self.labels]
-        self.transform = transform
-
-    def __getitem__(self, index):
-        x = self.data[index]
-        y = self.labels[index]
-
-        if self.transform:
-            # x = Image.fromarray(self.data[index].astype(np.uint8).transpose(1,2,0))
-
-            x = self.transform(x[0,:,:])
-            #x_orig = self.transform(x_orig[0,:,:])
-
-        sample = {'x': x, 'label': y}
-        return sample
-
-    def __len__(self):
-        return len(self.data)
 
 
 
@@ -339,16 +286,12 @@ def prep_pytorch_dataset(dataset,include_noise=False,noise_max=1.0):
     train_set = dataset('../data', train=True, download=True, transform=transform_norm)
     x_train = train_set.data.numpy().astype(np.float32) / 255.0
     x_train = np.expand_dims(x_train,1)
-    #x_train = x_train / 255.0
-    #x_train = x_train.astype(np.float)
-    y_train = train_set.targets.numpy()#.astype(x_train.dtype)
+    y_train = train_set.targets.numpy()
 
     test_set = dataset('../data', train=False, download=True, transform=transform_norm)
     x_test = test_set.data.numpy().astype(np.float32) / 255.0
     x_test = np.expand_dims(x_test,1)
-    #x_test = x_test / 255
-    #x_test = x_test.astype(np.float)
-    y_test = test_set.targets.numpy()#.astype(x_test.dtype)
-
+    y_test = test_set.targets.numpy()
+    
     print(x_train.dtype,y_train.dtype,x_test.dtype,y_test.dtype)
     return x_train, y_train, x_test, y_test
