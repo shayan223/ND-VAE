@@ -176,4 +176,4 @@ for attack in attack_list:
 
     attack_list = ['HopSkipJump','CW']
     zero_shot_eval('FashionMNIST_Noisy'+attack_tag,'FashionMNIST',attack_list)
-    zero_shot_eval('FashionMNIST_FGSM'+attack_tag,'FashionMNIST',attack_list)
+    zero_shot_eval('FashionMNIST'+attack_tag,'FashionMNIST',attack_list)
